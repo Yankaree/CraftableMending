@@ -64,7 +64,7 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     public ItemStack assemble(CraftingInput input) {
         ItemStack stack = new ItemStack(Items.ENCHANTED_BOOK);
         if (this.cachedRegistryAccess != null) {
-            var enchantmentRegistry = this.cachedRegistryAccess.registryOrThrow(Registries.ENCHANTMENT);
+            var enchantmentRegistry = this.cachedRegistryAccess.lookupOrThrow(Registries.ENCHANTMENT);
             var mending = enchantmentRegistry.getOrThrow(Enchantments.MENDING);
             var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
             enchantments.set(mending, 1);
@@ -73,7 +73,6 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
         return stack;
     }
 
-    @Override
     public boolean canCraftInDimensions(int width, int height) {
         return width * height >= 9;
     }
@@ -83,7 +82,6 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
         return new RecipeBookCategory();
     }
 
-    @Override
     public NonNullList<Ingredient> getIngredients() {
         return this.ingredients;
     }
