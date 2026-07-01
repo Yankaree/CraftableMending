@@ -7,7 +7,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
 import me.yankaree.mending.recipe.MendingBookRecipeSerializer;
-import me.yankaree.mending.event.CraftingEventListener;
+import me.yankaree.mending.event.MendingRecipeListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +25,8 @@ public class CraftableMending implements ModInitializer {
 			MendingBookRecipeSerializer.INSTANCE
 		);
 		
-		// Register event listeners
-		CraftingEventListener.register();
+		// Register event listeners for Bedrock compatibility
+		MendingRecipeListener.register();
 		
 		LOGGER.info("CraftableMending initialized! Mending Book is now craftable.");
 	}

@@ -3,10 +3,7 @@
 	"package": "me.yankaree.mending.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"ExampleMixin",
-		"CraftingContainerMixin",
-		"ResultContainerMixin",
-		"PlayerMixin"
+		"ExampleMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
