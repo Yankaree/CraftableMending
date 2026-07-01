@@ -1,0 +1,14 @@
+{
+	"type": "craftablemending:mending_book",
+	"ingredients": [
+		{ "item": "minecraft:diamond" },
+		{ "item": "minecraft:diamond" },
+		{ "item": "minecraft:diamond" },
+		{ "item": "minecraft:diamond" },
+		{ "item": "minecraft:gold_ingot" },
+		{ "item": "minecraft:gold_ingot" },
+		{ "item": "minecraft:gold_ingot" },
+		{ "item": "minecraft:gold_ingot" },
+		{ "item": "minecraft:iron_ingot" }
+	]
+}
