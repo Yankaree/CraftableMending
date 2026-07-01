@@ -5,7 +5,6 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,13 +26,10 @@ public class ResultContainerMixin {
     private void onSetItem(int slot, ItemStack itemStack, CallbackInfo ci) {
         try {
             // Chỉ xử lý khi đó là enchanted book (từ Bedrock recipe)
-            if (!itemStack.isEmpty() && itemStack.is(Items.ENCHANTED_BOOK) && !itemStack.hasTag()) {
+            if (!itemStack.isEmpty() && itemStack.is(Items.ENCHANTED_BOOK)) {
                 // Đây là enchanted book thường từ vanilla recipe
                 // Cần thêm Mending enchant nếu đó là từ Mending Book recipe
-                
-                // Lấy crafting container từ player
-                // Vì ResultContainer không có direct access tới CraftingContainer,
-                // sẽ xử lý ở mixin khác hoặc event listener
+                // Sẽ xử lý ở mixin khác hoặc event listener
             }
         } catch (Exception e) {
             System.out.println("[CraftableMending] Lỗi trong ResultContainerMixin: " + e.getMessage());
