@@ -1,7 +1,6 @@
 package me.yankaree.mending.recipe;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,9 +11,9 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
 public class MendingBookRecipe implements Recipe<CraftingInput> {
@@ -58,11 +57,13 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input) {
         ItemStack stack = new ItemStack(Items.ENCHANTED_BOOK);
-        var enchantmentRegistry = registryAccess.registryOrThrow(Registries.ENCHANTMENT);
+        var enchantmentRegistry = input.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
         var mending = enchantmentRegistry.getOrThrow(Enchantments.MENDING);
-        EnchantmentHelper.setEnchantments(stack, java.util.Map.of(mending, 1));
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        enchantments.set(mending, 1);
+        EnchantmentHelper.setEnchantments(stack, enchantments.toImmutable());
         return stack;
     }
 
@@ -72,13 +73,13 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem() {
         return new ItemStack(Items.ENCHANTED_BOOK);
     }
 
     @Override
     public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategory.CRAFTING;
+        return new RecipeBookCategory();
     }
 
     @Override
@@ -89,6 +90,11 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     @Override
     public boolean isSpecial() {
         return true;
+    }
+
+    @Override
+    public String group() {
+        return "";
     }
 
     @Override
@@ -108,6 +114,6 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
 
     @Override
     public PlacementInfo placementInfo() {
-        return PlacementInfo.DEFAULT;
+        return PlacementInfo.create(this.ingredients);
     }
 }
