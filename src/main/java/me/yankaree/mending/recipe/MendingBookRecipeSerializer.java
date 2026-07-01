@@ -1,51 +1,46 @@
 package me.yankaree.mending.recipe;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
-public class MendingBookRecipeSerializer implements RecipeSerializer<MendingBookRecipe> {
-	public static final MendingBookRecipeSerializer INSTANCE = new MendingBookRecipeSerializer();
+import java.util.List;
 
-	private MendingBookRecipeSerializer() {}
+public class MendingBookRecipeSerializer {
+	public static final RecipeSerializer<MendingBookRecipe> INSTANCE = new RecipeSerializer<>(
+		codec(),
+		streamCodec()
+	);
 
-	@Override
-	public MendingBookRecipe fromJson(Identifier id, JsonObject json) {
-		NonNullList<Ingredient> ingredients = NonNullList.create();
-		JsonArray jsonArray = GsonHelper.getAsJsonArray(json, "ingredients");
-		for (int i = 0; i < jsonArray.size(); i++) {
-			Ingredient ingredient = Ingredient.CODEC.parse(JsonOps.INSTANCE, jsonArray.get(i)).result().orElseThrow();
-			if (!ingredient.isEmpty()) {
-				ingredients.add(ingredient);
+	private static MapCodec<MendingBookRecipe> codec() {
+		return RecordCodecBuilder.mapCodec(instance ->
+			instance.group(
+				Ingredient.CODEC.listOf().fieldOf("ingredients").forGetter(recipe ->
+					recipe.getIngredients().stream().toList()
+				)
+			).apply(instance, list -> {
+				NonNullList<Ingredient> ingredients = NonNullList.create();
+				ingredients.addAll(list);
+				return new MendingBookRecipe(ingredients);
+			})
+		);
+	}
+
+	private static StreamCodec<RegistryFriendlyByteBuf, MendingBookRecipe> streamCodec() {
+		return StreamCodec.composite(
+			Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
+			recipe -> recipe.getIngredients().stream().toList(),
+			list -> {
+				NonNullList<Ingredient> ingredients = NonNullList.create();
+				ingredients.addAll(list);
+				return new MendingBookRecipe(ingredients);
 			}
-		}
-		return new MendingBookRecipe(ingredients);
-	}
-
-	@Override
-	public MendingBookRecipe fromNetwork(FriendlyByteBuf buf) {
-		int size = buf.readVarInt();
-		NonNullList<Ingredient> ingredients = NonNullList.create();
-		for (int i = 0; i < size; i++) {
-			ingredients.add(buf.readWithCodec(NbtOps.INSTANCE, Ingredient.CODEC, NbtAccounter.unlimitedHeap()));
-		}
-		return new MendingBookRecipe(ingredients);
-	}
-
-	@Override
-	public void toNetwork(FriendlyByteBuf buf, MendingBookRecipe recipe) {
-		buf.writeVarInt(recipe.getIngredients().size());
-		for (Ingredient ingredient : recipe.getIngredients()) {
-			buf.writeWithCodec(NbtOps.INSTANCE, Ingredient.CODEC, ingredient);
-		}
+		);
 	}
 }

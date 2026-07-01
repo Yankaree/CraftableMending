@@ -1,6 +1,7 @@
 package me.yankaree.mending.recipe;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.Level;
 
 public class MendingBookRecipe implements Recipe<CraftingInput> {
     private final NonNullList<Ingredient> ingredients;
+    private RegistryAccess cachedRegistryAccess;
 
     public MendingBookRecipe(NonNullList<Ingredient> ingredients) {
         this.ingredients = ingredients;
@@ -25,6 +27,8 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
+        this.cachedRegistryAccess = level.registryAccess();
+
         java.util.List<ItemStack> items = new java.util.ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
@@ -59,22 +63,19 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     @Override
     public ItemStack assemble(CraftingInput input) {
         ItemStack stack = new ItemStack(Items.ENCHANTED_BOOK);
-        var enchantmentRegistry = input.registryAccess().registryOrThrow(Registries.ENCHANTMENT);
-        var mending = enchantmentRegistry.getOrThrow(Enchantments.MENDING);
-        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
-        enchantments.set(mending, 1);
-        EnchantmentHelper.setEnchantments(stack, enchantments.toImmutable());
+        if (this.cachedRegistryAccess != null) {
+            var enchantmentRegistry = this.cachedRegistryAccess.registryOrThrow(Registries.ENCHANTMENT);
+            var mending = enchantmentRegistry.getOrThrow(Enchantments.MENDING);
+            var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+            enchantments.set(mending, 1);
+            EnchantmentHelper.setEnchantments(stack, enchantments.toImmutable());
+        }
         return stack;
     }
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
         return width * height >= 9;
-    }
-
-    @Override
-    public ItemStack getResultItem() {
-        return new ItemStack(Items.ENCHANTED_BOOK);
     }
 
     @Override
