@@ -6,37 +6,43 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 public class MendingBookRecipeSerializer implements RecipeSerializer<MendingBookRecipe> {
 	public static final MendingBookRecipeSerializer INSTANCE = new MendingBookRecipeSerializer();
 
+	private MendingBookRecipeSerializer() {}
+
+	@Override
 	public MendingBookRecipe fromJson(Identifier id, JsonObject json) {
-		NonNullList<Ingredient> ingredients = NonNullList.withSize(9, Ingredient.EMPTY);
-		JsonArray jsonArray = json.getAsJsonArray("ingredients");
-		for (int i = 0; i < Math.min(jsonArray.size(), 9); i++) {
+		NonNullList<Ingredient> ingredients = NonNullList.create();
+		JsonArray jsonArray = GsonHelper.getAsJsonArray(json, "ingredients");
+		for (int i = 0; i < jsonArray.size(); i++) {
 			Ingredient ingredient = Ingredient.fromJson(jsonArray.get(i));
 			if (!ingredient.isEmpty()) {
-				ingredients.set(i, ingredient);
+				ingredients.add(ingredient);
 			}
 		}
 		return new MendingBookRecipe(ingredients);
 	}
 
+	@Override
 	public MendingBookRecipe fromNetwork(FriendlyByteBuf buf) {
 		int size = buf.readVarInt();
-		NonNullList<Ingredient> ingredients = NonNullList.withSize(size, Ingredient.EMPTY);
+		NonNullList<Ingredient> ingredients = NonNullList.create();
 		for (int i = 0; i < size; i++) {
-			ingredients.set(i, Ingredient.fromNetwork(buf));
+			ingredients.add(Ingredient.CODEC.decode(buf.readWithCodec(Ingredient.CODEC)));
 		}
 		return new MendingBookRecipe(ingredients);
 	}
 
+	@Override
 	public void toNetwork(FriendlyByteBuf buf, MendingBookRecipe recipe) {
 		buf.writeVarInt(recipe.getIngredients().size());
 		for (Ingredient ingredient : recipe.getIngredients()) {
-			ingredient.toNetwork(buf);
+			buf.writeWithCodec(Ingredient.CODEC, ingredient);
 		}
 	}
 }

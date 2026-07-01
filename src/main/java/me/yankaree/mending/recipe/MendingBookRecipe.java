@@ -1,20 +1,21 @@
 package me.yankaree.mending.recipe;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class MendingBookRecipe implements Recipe<CraftingInput> {
     private final NonNullList<Ingredient> ingredients;
@@ -57,11 +58,11 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, net.minecraft.core.RegistryAccess registryAccess) {
+    public ItemStack assemble(CraftingInput input, RegistryAccess registryAccess) {
         ItemStack stack = new ItemStack(Items.ENCHANTED_BOOK);
-        Map<net.minecraft.world.item.enchantment.Enchantment, Integer> ench = new HashMap<>();
-        ench.put(Enchantments.MENDING, 1);
-        EnchantmentHelper.setEnchantments(ench, stack);
+        var enchantmentRegistry = registryAccess.registryOrThrow(Registries.ENCHANTMENT);
+        var mending = enchantmentRegistry.getOrThrow(Enchantments.MENDING);
+        EnchantmentHelper.setEnchantments(stack, java.util.Map.of(mending, 1));
         return stack;
     }
 
@@ -71,7 +72,7 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     }
 
     @Override
-    public ItemStack getResultItem(net.minecraft.core.RegistryAccess registryAccess) {
+    public ItemStack getResultItem(RegistryAccess registryAccess) {
         return new ItemStack(Items.ENCHANTED_BOOK);
     }
 
@@ -103,5 +104,10 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
     @Override
     public RecipeType<? extends Recipe<CraftingInput>> getType() {
         return RecipeType.CRAFTING;
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.DEFAULT;
     }
 }
