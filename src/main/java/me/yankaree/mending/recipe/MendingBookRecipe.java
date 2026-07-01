@@ -1,21 +1,20 @@
 package me.yankaree.mending.recipe;
 
-import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MendingBookRecipe implements Recipe<CraftingInput> {
     private final NonNullList<Ingredient> ingredients;
@@ -34,52 +33,51 @@ public class MendingBookRecipe implements Recipe<CraftingInput> {
             }
         }
 
-        if (items.size() != this.ingredients.size()) {
+        if (items.size() != 9) {
             return false;
         }
 
-        java.util.List<Ingredient> remaining = new java.util.ArrayList<>(this.ingredients);
+        int diamondCount = 0;
+        int goldCount = 0;
+        int ironCount = 0;
+
         for (ItemStack stack : items) {
-            boolean matched = false;
-            java.util.Iterator<Ingredient> it = remaining.iterator();
-            while (it.hasNext()) {
-                if (it.next().test(stack)) {
-                    it.remove();
-                    matched = true;
-                    break;
-                }
+            if (stack.is(Items.DIAMOND)) {
+                diamondCount++;
+            } else if (stack.is(Items.GOLD_INGOT)) {
+                goldCount++;
+            } else if (stack.is(Items.IRON_INGOT)) {
+                ironCount++;
+            } else {
+                return false;
             }
-            if (!matched) return false;
         }
 
-        return true;
+        return diamondCount == 4 && goldCount == 4 && ironCount == 1;
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, RegistryAccess registryAccess) {
-        Holder<Enchantment> mending = registryAccess
-            .lookupOrThrow(Registries.ENCHANTMENT)
-            .getOrThrow(Enchantments.MENDING);
+    public ItemStack assemble(CraftingInput input, net.minecraft.core.RegistryAccess registryAccess) {
         ItemStack stack = new ItemStack(Items.ENCHANTED_BOOK);
-        ItemEnchantments.Mutable enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
-        enchantments.set(mending, 1);
-        EnchantmentHelper.setEnchantments(stack, enchantments.toImmutable());
+        Map<net.minecraft.world.item.enchantment.Enchantment, Integer> ench = new HashMap<>();
+        ench.put(Enchantments.MENDING, 1);
+        EnchantmentHelper.setEnchantments(ench, stack);
         return stack;
     }
 
     @Override
     public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= this.ingredients.size();
+        return width * height >= 9;
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess) {
+    public ItemStack getResultItem(net.minecraft.core.RegistryAccess registryAccess) {
         return new ItemStack(Items.ENCHANTED_BOOK);
     }
 
     @Override
-    public RecipeBookCategories recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING;
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategory.CRAFTING;
     }
 
     @Override
