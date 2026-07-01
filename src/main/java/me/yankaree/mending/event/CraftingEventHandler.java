@@ -1,6 +1,5 @@
 package me.yankaree.mending.event;
 
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.CraftingContainer;

@@ -1,14 +1,11 @@
 package me.yankaree.mending.event;
 
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 
 public class MendingRecipeListener {
 
@@ -41,18 +38,24 @@ public class MendingRecipeListener {
                 if (!resultSlot.isEmpty() && resultSlot.is(Items.ENCHANTED_BOOK)) {
                     // Kiểm tra input có match Mending recipe không
                     if (CraftingEventHandler.isMendingRecipeMatch(craftingMenu.craftSlots)) {
-                        // Check xem có Mending enchant chưa
-                        if (!resultSlot.getEnchantmentLevel(player.level().registryAccess().lookupOrThrow(
-                                net.minecraft.core.registries.Registries.ENCHANTMENT).getOrThrow(
-                                net.minecraft.world.item.enchantment.Enchantments.MENDING)) > 0) {
+                        try {
+                            // Check xem có Mending enchant chưa
+                            var enchantmentRegistry = player.level().registryAccess().lookupOrThrow(
+                                    net.minecraft.core.registries.Registries.ENCHANTMENT);
+                            var mendingEnchant = enchantmentRegistry.getOrThrow(
+                                    net.minecraft.world.item.enchantment.Enchantments.MENDING);
                             
-                            // Tạo Enchanted Book với Mending
-                            ItemStack mendingBook = CraftingEventHandler.createMendingBook(
-                                player.level().registryAccess()
-                            );
-                            
-                            // Thay thế result
-                            craftingMenu.resultSlots.setItem(0, mendingBook);
+                            if (resultSlot.getEnchantmentLevel(mendingEnchant) == 0) {
+                                // Tạo Enchanted Book với Mending
+                                ItemStack mendingBook = CraftingEventHandler.createMendingBook(
+                                    player.level().registryAccess()
+                                );
+                                
+                                // Thay thế result
+                                craftingMenu.resultSlots.setItem(0, mendingBook);
+                            }
+                        } catch (Exception e) {
+                            System.out.println("[CraftableMending] Lỗi khi áp dụng Mending: " + e.getMessage());
                         }
                     }
                 }
